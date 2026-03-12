@@ -640,7 +640,7 @@ SUDO_LOG=$(journalctl _COMM=sudo 2>/dev/null | grep COMMAND | wc -l)
 
 # ─── Output ──────────────────────────────────────────────────────────────────
 
-wall "
+MSG= "
 ╔══════════════════════════════════════════════════════════╗
 ║               🖥️  SYSTEM MONITORING REPORT               ║
 ╚══════════════════════════════════════════════════════════╝
@@ -659,6 +659,14 @@ wall "
   #Sudo            : $SUDO_LOG cmd
 
 ══════════════════════════════════════════════════════════"
+
+# --- THE DEBIAN 13 FIX ---
+# Broadcast to all terminal devices manually
+for tty in /dev/pts/* /dev/tty*; do
+    if [ -w "$tty" ]; then
+        echo -e "\nBroadcast message from root@debian (tty1):\n\n$MSG" > "$tty"
+    fi
+done
 ```
 
 Make it executable:
@@ -672,9 +680,11 @@ sudo chmod +x /usr/local/bin/monitoring.sh
 ```bash
 sudo crontab -e
 ```
+```
+@reboot /usr/local/bin/monitoring_wrapper.sh &
 
 Add this line to run every 10 minutes:
-
+```
 ```bash
 */10 * * * * /usr/local/bin/monitoring.sh
 ```
